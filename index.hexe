@@ -1,0 +1,116 @@
+
+%%html
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>District Shahdol</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.gov {
+    background: #eee;
+    padding: 18px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.header {
+    padding: 30px 10px;
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.search {
+    padding: 15px;
+    width: 65%;
+    font-size: 18px;
+    border: 2px solid #aaa;
+    border-radius: 10px;
+}
+
+.slider {
+    margin-top: 35px;
+    padding: 100px 10px;
+    text-align: center;
+    background: #ddd;
+    font-size: 22px;
+}
+
+button {
+    padding: 12px 20px;
+    background: #604000;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.news {
+    margin: 50px 5%;
+    background: #fff0cd;
+    padding: 20px;
+}
+
+.news h2 {
+    background: #604000;
+    color: white;
+    padding: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="gov">
+मध्यप्रदेश शासन | Government of Madhya Pradesh
+</div>
+
+<div class="header">
+जिला शहडोल<br>
+District Shahdol
+</div>
+
+<center>
+<input class="search" id="search" placeholder="Search">
+<button onclick="searchSite()">🔍</button>
+</center>
+
+<div class="slider">
+<h2 id="slide">बिरसा मुंडा सरकारी मेडिकल कॉलेज</h2>
+<button onclick="nextSlide()">Next ❯</button>
+</div>
+
+<div class="news">
+<h2>Latest News</h2>
+<p>Regarding publishing of tender notice</p>
+<p>Latest Government Updates</p>
+<p>District Shahdol Important Notices</p>
+</div>
+
+<script>
+let slides = [
+"बिरसा मुंडा सरकारी मेडिकल कॉलेज",
+"District Shahdol Madhya Pradesh",
+"Government of Madhya Pradesh"
+];
+
+let i = 0;
+
+function nextSlide() {
+    i = (i + 1) % slides.length;
+    document.getElementById("slide").innerText = slides[i];
+}
+
+function searchSite() {
+    alert(document.getElementById("search").value);
+}
+</script>
+
+</body>
+</html>
