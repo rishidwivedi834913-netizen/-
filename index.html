@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Candy Crush Game</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  text-align: center;
+  background: linear-gradient(135deg,#ff70a6,#845ec2);
+  color: white;
+}
+h1 { font-size: 32px; }
+.info {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  font-size: 20px;
+  margin: 15px;
+}
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  width: min(94vw, 420px);
+  margin: 20px auto;
+  background: #ffffff55;
+  padding: 7px;
+  border-radius: 15px;
+}
+.cell {
+  aspect-ratio: 1;
+  background: #ffffff55;
+  border-radius: 10px;
+  font-size: clamp(22px, 7vw, 36px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.selected {
+  outline: 3px solid yellow;
+}
+button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 25px;
+  background: #ffca3a;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>🍭 Candy Crush 🍬</h1>
+
+<div class="info">
+  <div>Score: <span id="score">0</span></div>
+  <div>Moves: <span id="moves">30</span></div>
+</div>
+
+<div id="board"></div>
+<button onclick="startGame()">Restart Game</button>
+<p id="message">Match 3 or more candies!</p>
+
+<script>
+const size = 8;
+const candies = ["🍬","🍭","🍫","🍒","🍇","🍊"];
+let board = [];
+let score = 0;
+let moves = 30;
+let selected = null;
+let locked = false;
+
+const boardElement = document.getElementById("board");
+
+function randomCandy() {
+  return Math.floor(Math.random() * candies.length);
+}
+
+function startGame() {
+  score = 0;
+  moves = 30;
+  selected = null;
+  locked = false;
+  board = [];
+
+  for(let i=0; i<size*size; i++) {
+    board.push(randomCandy());
+  }
+
+  while(findMatches().length > 0) {
+    findMatches().forEach(i => board[i] = randomCandy());
+  }
+
+  update();
+  document.getElementById("message").textContent =
+    "Match 3 or more candies!";
+}
+
+function update() {
+  boardElement.innerHTML = "";
+
+  board.forEach((candy, i) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    if(selected === i) cell.classList.add("selected");
+    cell.textContent = candies[candy];
+    cell.onclick = () => choose(i);
+    boardElement.appendChild(cell);
+  });
+
+  document.getElementById("score").textContent = score;
+  document.getElementById("moves").textContent = moves;
+}
+
+function findMatches() {
+  let matched = new Set();
+
+  // Horizontal matches
+  for(let r=0; r<size; r++) {
+    for(let c=0; c<size-2; c++) {
+      let i = r*size+c;
+      if(board[i] === board[i+1] &&
+         board[i] === board[i+2]) {
+        let j = c;
+        while(j<size && board[r*size+j] === board[i]) {
+          matched.add(r*size+j);
+          j++;
+        }
+      }
+    }
+  }
+
+  // Vertical matches
+  for(let c=0; c<size; c++) {
+    for(let r=0; r<size-2; r++) {
+      let i = r*size+c;
+      if(board[i] === board[i+size] &&
+         board[i] === board[i+2*size]) {
+        let j = r;
+        while(j<size && board[j*size+c] === board[i]) {
+          matched.add(j*size+c);
+          j++;
+        }
+      }
+    }
+  }
+
+  return [...matched];
+}
+
+function choose(i) {
+  if(locked || moves <= 0) return;
+
+  if(selected === null) {
+    selected = i;
+  } else {
+    let a = selected;
+    let b = i;
+    selected = null;
+
+    let adjacent =
+      (Math.abs(a-b) === size) ||
+      (Math.floor(a/size) === Math.floor(b/size) &&
+       Math.abs(a-b) === 1);
+
+    if(adjacent) swap(a,b);
+  }
+
+  update();
+}
+
+async function swap(a,b) {
+  locked = true;
+
+  [board[a],board[b]] = [board[b],board[a]];
+
+  if(findMatches().length === 0) {
+    [board[a],board[b]] = [board[b],board[a]];
+    locked = false;
+    update();
+    return;
+  }
+
+  moves--;
+  await clearMatches();
+
+  locked = false;
+  update();
+
+  if(moves === 0) {
+    document.getElementById("message").textContent =
+      "Game Over! Final Score: " + score;
+  }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve,ms));
+}
+
+async function clearMatches() {
+  let matches = findMatches();
+
+  while(matches.length > 0) {
+    score += matches.length * 10;
+
+    matches.forEach(i => board[i] = -1);
+    update();
+    await sleep(180);
+
+    // Drop candies down
+    for(let c=0; c<size; c++) {
+      let column = [];
+
+      for(let r=size-1; r>=0; r--) {
+        let value = board[r*size+c];
+        if(value !== -1) column.push(value);
+      }
+
+      while(column.length < size) {
+        column.push(randomCandy());
+      }
+
+      for(let r=size-1; r>=0; r--) {
+        board[r*size+c] = column[size-1-r];
+      }
+    }
+
+    update();
+    await sleep(180);
+    matches = findMatches();
+  }
+}
+
+startGame();
+</script>
+
+</body>
+</html>
